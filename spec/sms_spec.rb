@@ -21,10 +21,6 @@ describe "Mollie::SMS" do
     Mollie::SMS.type.should == :normal
   end
 
-  it "returns whether or not to return the amount charged" do
-    Mollie::SMS.return_charged_amount.should == true
-  end
-
   it "holds a list of available gateways" do
     Mollie::SMS::GATEWAYS[:basic].should == 2
     Mollie::SMS::GATEWAYS[:business].should == 4
@@ -42,7 +38,6 @@ describe "Mollie::SMS" do
       :md5_password => Mollie::SMS.password,
       :gateway      => 2,
       :charset      => 'UTF-8',
-      :return       => 'charged',
       :type         => :normal
     }
   end
@@ -63,7 +58,18 @@ describe "A Mollie::SMS instance" do
     @sms.body.should == "The stars tell me you will have chicken noodle soup for breakfast."
   end
 
-  #it "returns the POST request body" do
-    #@sms.post_body.should == 
-  #end
+  it "returns the request params" do
+    params = Mollie::SMS.request_params.merge(
+      :recipients => '+31612345678',
+      :message => "The stars tell me you will have chicken noodle soup for breakfast."
+    )
+    @sms.request_params.should == params
+  end
+
+  it "returns a string version of the request params" do
+    def @sms.request_params
+      [[:key, :value], ["another key", "another value"]]
+    end
+    @sms.post_body.should == "key=value&another%20key=another%20value"
+  end
 end
