@@ -42,7 +42,15 @@ module Mollie
     end
 
     def deliver
-      Net::HTTP.post_form(GATEWAY_URI, request_params)
+      Response.new(Net::HTTP.post_form(GATEWAY_URI, request_params))
+    end
+
+    class Response
+      attr_reader :response
+
+      def initialize(response)
+        @response = response
+      end
     end
   end
 end

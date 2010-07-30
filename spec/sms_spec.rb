@@ -73,18 +73,26 @@ end
 
 module Net
   class HTTP
-    def self.reset!
-      @posted = {}
-    end
+    class << self
+      attr_accessor :stubbed_response
 
-    def self.post_form(url, params)
-      @posted = { 'url' => url, 'params' => params }
-    end
+      def reset!
+        @posted = {}
+      end
 
-    def self.posted
-      @posted ||= {}
+      def post_form(url, params)
+        @posted = { 'url' => url, 'params' => params }
+        @stubbed_response
+      end
+
+      def posted
+        @posted ||= {}
+      end
     end
   end
+end
+
+class ResponseStub
 end
 
 describe "When sending a Mollie::SMS message" do
@@ -104,5 +112,12 @@ describe "When sending a Mollie::SMS message" do
       'url'    => Mollie::SMS::GATEWAY_URI,
       'params' => @sms.request_params
     }
+  end
+
+  it "returns a Mollie::SMS::Response object, with the Net::HTTP response" do
+    Net::HTTP.stubbed_response = ResponseStub.new
+    response = @sms.deliver
+    response.should.be.instance_of Mollie::SMS::Response
+    response.response.should == Net::HTTP.stubbed_response
   end
 end
