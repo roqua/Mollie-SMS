@@ -153,8 +153,15 @@ describe "A Mollie::SMS::Response instance" do
   it "returns whether or not it was a success" do
     @response.should.be.success
 
-    @response.stubs(:params).returns('resultcode' => '20', 'success' => 'false')
+    @response.stubs(:params).returns('success' => 'false')
     @response.should.not.be.success
   end
 
+  it "returns the result code" do
+    @response.result_code.should == 10
+  end
+
+  it "returns the message corresponding to the result code" do
+    @response.message.should == "Message successfully sent."
+  end
 end

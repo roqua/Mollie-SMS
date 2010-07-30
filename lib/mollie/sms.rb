@@ -62,6 +62,14 @@ module Mollie
         @params ||= Hash.from_xml(@http_response.read_body)['response']['item']
       end
 
+      def result_code
+        params['resultcode'].to_i
+      end
+
+      def message
+        params['resultmessage']
+      end
+
       def success?
         @http_response.is_a?(Net::HTTPSuccess) && params['success'] == 'true'
       end
