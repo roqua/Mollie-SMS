@@ -77,7 +77,8 @@ module Net
       attr_accessor :stubbed_response
 
       def reset!
-        @posted = {}
+        @posted = nil
+        @stubbed_response = nil
       end
 
       def post_form(url, params)
@@ -115,9 +116,45 @@ describe "When sending a Mollie::SMS message" do
   end
 
   it "returns a Mollie::SMS::Response object, with the Net::HTTP response" do
-    Net::HTTP.stubbed_response = ResponseStub.new
+    Net::HTTP.stubbed_response = Net::HTTPOK.new('1.1', '200', 'OK')
     response = @sms.deliver
     response.should.be.instance_of Mollie::SMS::Response
-    response.response.should == Net::HTTP.stubbed_response
+    response.http_response.should == Net::HTTP.stubbed_response
   end
+end
+
+SUCCESS_BODY = %{
+<?xml version="1.0" ?>
+<response>
+    <item type="sms">
+        <recipients>1</recipients>
+        <success>true</success>
+        <resultcode>10</resultcode>
+        <resultmessage>Message successfully sent.</resultmessage>
+    </item>
+</response>}
+
+describe "A Mollie::SMS::Response instance" do
+  before do
+    @http_response = Net::HTTPOK.new('1.1', '200', 'OK')
+    @http_response.stubs(:read_body).returns(SUCCESS_BODY)
+    @http_response.add_field('Content-type', 'application/xml')
+    @response = Mollie::SMS::Response.new(@http_response)
+  end
+
+  it "returns the Net::HTTP response object" do
+    @response.http_response.should == @http_response
+  end
+
+  it "returns the response body as a hash" do
+    @response.params.should == Hash.from_xml(SUCCESS_BODY)['response']['item']
+  end
+
+  it "returns whether or not it was a success" do
+    @response.should.be.success
+
+    @response.stubs(:params).returns('resultcode' => '20', 'success' => 'false')
+    @response.should.not.be.success
+  end
+
 end

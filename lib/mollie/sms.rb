@@ -2,6 +2,12 @@ require "digest/md5"
 require "uri"
 require "net/http"
 
+begin
+  require "rubygems"
+rescue LoadError
+end
+require "active_support"
+
 module Mollie
   class SMS
     GATEWAY_URI = URI.parse("http://www.mollie.nl/xml/sms")
@@ -46,10 +52,18 @@ module Mollie
     end
 
     class Response
-      attr_reader :response
+      attr_reader :http_response
 
-      def initialize(response)
-        @response = response
+      def initialize(http_response)
+        @http_response = http_response
+      end
+
+      def params
+        @params ||= Hash.from_xml(@http_response.read_body)['response']['item']
+      end
+
+      def success?
+        @http_response.is_a?(Net::HTTPSuccess) && params['success'] == 'true'
       end
     end
   end
