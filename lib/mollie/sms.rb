@@ -29,7 +29,7 @@ module Mollie
         @password = Digest::MD5.hexdigest(password)
       end
 
-      def request_params
+      def default_params
         {
           'username'     => @username,
           'md5_password' => @password,
@@ -48,7 +48,7 @@ module Mollie
     attr_reader :params
 
     def initialize(telephone_number = nil, body = nil, extra_params = {})
-      @params = self.class.request_params.merge(extra_params)
+      @params = self.class.default_params.merge(extra_params)
       self.telephone_number = telephone_number if telephone_number
       self.body = body if body
     end
@@ -96,30 +96,27 @@ module Mollie
       end
 
       def params
-        @params ||= http_request_succeeded? ?
-          Hash.from_xml(@http_response.read_body)['response']['item'] : {}
+        @params ||= http_failure? ? {} : Hash.from_xml(@http_response.read_body)['response']['item']
       end
 
       def result_code
-        params['resultcode'].to_i if http_request_succeeded?
+        (http_failure? ? @http_response.code : params['resultcode']).to_i
       end
 
       def message
-        params['resultmessage']
+        http_failure? ? "[HTTP: #{@http_response.code}] #{@http_response.message}" : params['resultmessage']
       end
 
       def success?
-        http_request_succeeded? && params['success'] == 'true'
+        !http_failure? && params['success'] == 'true'
+      end
+
+      def http_failure?
+        !@http_response.is_a?(Net::HTTPSuccess)
       end
 
       def inspect
         "#<#{self.class.name} #{ success? ? 'succeeded' : 'failed' } (#{result_code}) `#{message}'>"
-      end
-
-      private
-
-      def http_request_succeeded?
-        @http_response.is_a?(Net::HTTPSuccess)
       end
     end
   end

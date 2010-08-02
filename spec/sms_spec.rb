@@ -3,7 +3,7 @@ require "mollie/sms"
 
 Mollie::SMS.username = 'AstroRadio'
 Mollie::SMS.password = 'secret'
-Mollie::SMS.originator = 'Fingertips'
+Mollie::SMS.originator = 'Astro INC'
 
 describe "Mollie::SMS" do
   it "holds the gateway uri" do
@@ -19,7 +19,7 @@ describe "Mollie::SMS" do
   end
 
   it "holds the originator" do
-    Mollie::SMS.originator.should == 'Fingertips'
+    Mollie::SMS.originator.should == 'Astro INC'
   end
 
   it "returns the default charset" do
@@ -41,11 +41,11 @@ describe "Mollie::SMS" do
     Mollie::SMS.gateway.should == Mollie::SMS::GATEWAYS['basic']
   end
 
-  it "returns a hash of params for a request" do
-    Mollie::SMS.request_params.should == {
+  it "returns a hash of default params for a request" do
+    Mollie::SMS.default_params.should == {
       'username'     => 'AstroRadio',
       'md5_password' => Digest::MD5.hexdigest('secret'),
-      'originator'   => 'Fingertips',
+      'originator'   => 'Astro INC',
       'gateway'      => '2',
       'charset'      => 'UTF-8',
       'type'         => 'normal'
@@ -83,53 +83,13 @@ describe "A Mollie::SMS instance" do
   end
 
   it "returns the request params with all string keys and values" do
-    params = Mollie::SMS.request_params.merge(
+    params = Mollie::SMS.default_params.merge(
       'recipients' => '+31612345678',
       'message'    => "The stars tell me you will have chicken noodle soup for breakfast."
     )
     @sms.params.should == params
   end
 end
-
-module Net
-  class HTTP
-    class << self
-      attr_accessor :posted, :stubbed_response
-
-      def reset!
-        @posted = nil
-        @stubbed_response = nil
-      end
-    end
-
-    def host
-      @address
-    end
-
-    def start
-      yield self
-    end
-
-    def request(request)
-      self.class.posted = [self, request]
-      self.class.stubbed_response
-    end
-  end
-end
-
-class ResponseStub
-end
-
-SUCCESS_BODY = %{
-<?xml version="1.0" ?>
-<response>
-    <item type="sms">
-        <recipients>1</recipients>
-        <success>true</success>
-        <resultcode>10</resultcode>
-        <resultmessage>Message successfully sent.</resultmessage>
-    </item>
-</response>}
 
 describe "When sending a Mollie::SMS message" do
   before do
@@ -195,7 +155,32 @@ describe "A Mollie::SMS::Response instance, for a succeeded request" do
   end
 end
 
-describe "A Mollie::SMS::Response instance, for a failed request" do
+describe "A Mollie::SMS::Response instance, for a request that failed at the gateway" do
+  before do
+    @http_response = Net::HTTPOK.new('1.1', '200', 'OK')
+    @http_response.stubs(:read_body).returns(FAILURE_BODY)
+    @http_response.add_field('Content-type', 'application/xml')
+    @response = Mollie::SMS::Response.new(@http_response)
+  end
+
+  it "returns that the request was not a success" do
+    @response.should.not.be.success
+  end
+
+  it "returns that this is a *not* HTTP failure" do
+    @response.should.not.be.http_failure
+  end
+
+  it "returns the result_code" do
+    @response.result_code.should == 20
+  end
+
+  it "returns the message corresponding to the result code" do
+    @response.message.should == "No username given."
+  end
+end
+
+describe "A Mollie::SMS::Response instance, for a failed HTTP request" do
   before do
     @http_response = Net::HTTPBadRequest.new('1.1', '400', 'Bad request')
     @response = Mollie::SMS::Response.new(@http_response)
@@ -209,11 +194,15 @@ describe "A Mollie::SMS::Response instance, for a failed request" do
     @response.should.not.be.success
   end
 
-  it "returns nil as the result_code" do
-    @response.result_code.should == nil
+  it "returns that this is a HTTP failure" do
+    @response.should.be.http_failure
   end
 
-  it "returns nil as the message" do
-    @response.message.should == nil
+  it "returns the HTTP response code as the result_code" do
+    @response.result_code.should == 400
+  end
+
+  it "returns the HTTP error message as the message" do
+    @response.message.should == "[HTTP: 400] Bad request"
   end
 end
