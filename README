@@ -1,0 +1,7 @@
+A Ruby client that allows you to send SMS messages via http://mollie.nl.
+
+It does only what we need, for our app, at this point in time. Which means that
+connects to the webservice via SSL, and only sends a message to one recipient
+at a time.
+
+Patches are accepted.
