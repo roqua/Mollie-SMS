@@ -19,7 +19,10 @@ module Mollie
       'landline'  => '8'
     }
 
+    class StandardError        < ::StandardError; end
+    class ValidationError      < StandardError; end
     class MissingRequiredParam < StandardError; end
+
     REQUIRED_PARAMS = %w{ username md5_password originator gateway charset type recipients message }
 
     class << self
@@ -27,6 +30,17 @@ module Mollie
 
       def password=(password)
         @password = Digest::MD5.hexdigest(password)
+      end
+
+      def originator=(originator)
+        if originator =~ /^\d+$/
+          if originator.size > 14
+            raise ValidationError, "Originator may have a maximimun of 14 numerical characters."
+          end
+        elsif originator.size > 11
+          raise ValidationError, "Originator may have a maximimun of 11 alphanumerical characters."
+        end
+        @originator = originator
       end
 
       def default_params

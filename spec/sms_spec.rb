@@ -206,3 +206,25 @@ describe "A Mollie::SMS::Response instance, for a failed HTTP request" do
     @response.message.should == "[HTTP: 400] Bad request"
   end
 end
+
+describe "Mollie::SMS, concerning validation" do
+  it "accepts an originator of upto 14 numbers" do
+    lambda { Mollie::SMS.originator = "00000000001111" }.should.not.raise
+  end
+
+  it "does not accept an originator string with more than 14 numbers" do
+    lambda do
+      Mollie::SMS.originator = "000000000011112"
+    end.should.raise(Mollie::SMS::ValidationError, "Originator may have a maximimun of 14 numerical characters.")
+  end
+
+  it "accepts an originator of upto 11 alphanumerical characters" do
+    lambda { Mollie::SMS.originator = "0123456789A" }.should.not.raise
+  end
+
+  it "does not accept an originator string with more than 11 alphanumerical characters" do
+    lambda do
+      Mollie::SMS.originator = "0123456789AB"
+    end.should.raise(Mollie::SMS::ValidationError, "Originator may have a maximimun of 11 alphanumerical characters.")
+  end
+end
