@@ -1,1 +1,2 @@
+* fall back on REXML when activesupport isn't available
 * write docs
