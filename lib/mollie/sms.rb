@@ -32,17 +32,6 @@ module Mollie
         @password = Digest::MD5.hexdigest(password)
       end
 
-      def originator=(originator)
-        if originator =~ /^\d+$/
-          if originator.size > 14
-            raise ValidationError, "Originator may have a maximimun of 14 numerical characters."
-          end
-        elsif originator.size > 11
-          raise ValidationError, "Originator may have a maximimun of 11 alphanumerical characters."
-        end
-        @originator = originator
-      end
-
       def default_params
         {
           'username'     => @username,
@@ -88,9 +77,7 @@ module Mollie
     end
 
     def deliver
-      params.slice(*REQUIRED_PARAMS).each do |key, value|
-        raise MissingRequiredParam, "The required parameter `#{key}' is missing." if value.blank?
-      end
+      validate_params!
 
       post = Net::HTTP::Post.new(GATEWAY_URI.path)
       post.form_data = params
@@ -99,6 +86,21 @@ module Mollie
       request.start do |http|
         response = http.request(post)
         Response.new(response)
+      end
+    end
+
+    def validate_params!
+      params.slice(*REQUIRED_PARAMS).each do |key, value|
+        raise MissingRequiredParam, "The required parameter `#{key}' is missing." if value.blank?
+      end
+
+      originator = params['originator']
+      if originator =~ /^\d+$/
+        if originator.size > 14
+          raise ValidationError, "Originator may have a maximimun of 14 numerical characters."
+        end
+      elsif originator.size > 11
+        raise ValidationError, "Originator may have a maximimun of 11 alphanumerical characters."
       end
     end
 

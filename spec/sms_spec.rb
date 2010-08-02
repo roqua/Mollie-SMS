@@ -104,6 +104,7 @@ describe "When sending a Mollie::SMS message" do
 
   it "posts the post body to the gateway" do
     @sms.stubs(:params).returns('a key' => 'a value')
+    @sms.stubs(:validate_params!)
     @sms.deliver
 
     request, post = Net::HTTP.posted
@@ -208,23 +209,33 @@ describe "A Mollie::SMS::Response instance, for a failed HTTP request" do
 end
 
 describe "Mollie::SMS, concerning validation" do
+  before do
+    @sms = Mollie::SMS.new
+    @sms.telephone_number = '+31612345678'
+    @sms.body = "The stars tell me you will have chicken noodle soup for breakfast."
+  end
+
   it "accepts an originator of upto 14 numbers" do
-    lambda { Mollie::SMS.originator = "00000000001111" }.should.not.raise
+    @sms.params['originator'] = "00000000001111"
+    lambda { @sms.deliver }.should.not.raise
   end
 
   it "does not accept an originator string with more than 14 numbers" do
+    @sms.params['originator'] = "000000000011112"
     lambda do
-      Mollie::SMS.originator = "000000000011112"
+      @sms.deliver
     end.should.raise(Mollie::SMS::ValidationError, "Originator may have a maximimun of 14 numerical characters.")
   end
 
   it "accepts an originator of upto 11 alphanumerical characters" do
-    lambda { Mollie::SMS.originator = "0123456789A" }.should.not.raise
+    @sms.params['originator'] = "0123456789A"
+    lambda { @sms.deliver }.should.not.raise
   end
 
   it "does not accept an originator string with more than 11 alphanumerical characters" do
+    @sms.params['originator'] = "0123456789AB"
     lambda do
-      Mollie::SMS.originator = "0123456789AB"
+      @sms.deliver
     end.should.raise(Mollie::SMS::ValidationError, "Originator may have a maximimun of 11 alphanumerical characters.")
   end
 end
