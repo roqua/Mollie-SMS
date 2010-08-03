@@ -1,9 +1,5 @@
 require File.expand_path("../spec_helper", __FILE__)
-require "mollie/sms"
-
-Mollie::SMS.username = 'AstroRadio'
-Mollie::SMS.password = 'secret'
-Mollie::SMS.originator = 'Astro INC'
+require "mollie/sms/test_helper"
 
 describe "Mollie::SMS" do
   it "holds the gateway uri" do
@@ -108,34 +104,8 @@ describe "When sending a Mollie::SMS message" do
     @sms.body = "The stars tell me you will have chicken noodle soup for breakfast."
   end
 
-  after do
-    Net::HTTP.reset!
-  end
-
-  it "posts the post body to the gateway" do
-    @sms.stubs(:params).returns('a key' => 'a value')
-    @sms.stubs(:validate_params!)
-    @sms.deliver
-
-    request, post = Net::HTTP.posted
-    request.should.use_ssl
-    request.host.should == Mollie::SMS::GATEWAY_URI.host
-    request.port.should == Mollie::SMS::GATEWAY_URI.port
-    post.path.should == Mollie::SMS::GATEWAY_URI.path
-    post.body.should == "a%20key=a%20value"
-  end
-
-  it "returns a Mollie::SMS::Response object, with the Net::HTTP response" do
-    Net::HTTP.stubbed_response = Net::HTTPOK.new('1.1', '200', 'OK')
-    Net::HTTP.stubbed_response.stubs(:read_body).returns(SUCCESS_BODY)
-    response = @sms.deliver!
-    response.should.be.instance_of Mollie::SMS::Response
-    response.http_response.should == Net::HTTP.stubbed_response
-  end
-
   it "raises a Mollie::SMS::DeliveryFailure exception when sending, through the #deliver! method, fails" do
-    Net::HTTP.stubbed_response = Net::HTTPOK.new('1.1', '200', 'OK')
-    Net::HTTP.stubbed_response.stubs(:read_body).returns(FAILURE_BODY)
+    Mollie::SMS.gateway_failure!
 
     exception = nil
     begin
@@ -143,26 +113,21 @@ describe "When sending a Mollie::SMS message" do
     rescue Mollie::SMS::DeliveryFailure => exception
     end
 
-    exception.sms.should == @sms
-    exception.response.http_response.should == Net::HTTP.stubbed_response
     exception.message.should == "(No username given.) #{@sms.to_s}"
   end
 end
 
 describe "A Mollie::SMS::Response instance, for a succeeded request" do
   before do
-    @http_response = Net::HTTPOK.new('1.1', '200', 'OK')
-    @http_response.stubs(:read_body).returns(SUCCESS_BODY)
-    @http_response.add_field('Content-type', 'application/xml')
-    @response = Mollie::SMS::Response.new(@http_response)
+    @response = Mollie::SMS.success!
   end
 
   it "returns the Net::HTTP response object" do
-    @response.http_response.should == @http_response
+    @response.http_response.should.is_a?(Net::HTTPSuccess)
   end
 
   it "returns the response body as a hash" do
-    @response.params.should == Hash.from_xml(SUCCESS_BODY)['response']['item']
+    @response.params.should == Hash.from_xml(Mollie::SMS::TestHelper::SUCCESS_BODY)['response']['item']
   end
 
   it "returns whether or not it was a success" do
@@ -183,10 +148,7 @@ end
 
 describe "A Mollie::SMS::Response instance, for a request that failed at the gateway" do
   before do
-    @http_response = Net::HTTPOK.new('1.1', '200', 'OK')
-    @http_response.stubs(:read_body).returns(FAILURE_BODY)
-    @http_response.add_field('Content-type', 'application/xml')
-    @response = Mollie::SMS::Response.new(@http_response)
+    @response = Mollie::SMS.gateway_failure!
   end
 
   it "returns that the request was not a success" do
@@ -208,8 +170,7 @@ end
 
 describe "A Mollie::SMS::Response instance, for a failed HTTP request" do
   before do
-    @http_response = Net::HTTPBadRequest.new('1.1', '400', 'Bad request')
-    @response = Mollie::SMS::Response.new(@http_response)
+    @response = Mollie::SMS.http_failure!
   end
 
   it "returns an empty hash as the params" do

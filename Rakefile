@@ -1,6 +1,8 @@
 desc "Run the specs"
 task :spec do
   sh "ruby ./spec/sms_spec.rb"
+  sh "ruby ./spec/test_helper_spec.rb"
+  sh "ruby ./spec/functional_sms_deliver_spec.rb"
 end
 
 task :default => :spec
