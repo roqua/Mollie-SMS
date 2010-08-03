@@ -89,6 +89,16 @@ describe "A Mollie::SMS instance" do
     )
     @sms.params.should == params
   end
+
+  it "checks equality by comparing the params" do
+    @sms.should == Mollie::SMS.new('+31612345678', "The stars tell me you will have chicken noodle soup for breakfast.")
+    @sms.should.not == Mollie::SMS.new('+31612345678', "Different message")
+    @sms.should.not == Mollie::SMS.new('+31612345678', "The stars tell me you will have chicken noodle soup for breakfast.", 'originator' => 'Some being')
+  end
+
+  it "returns a string representation of itself" do
+    @sms.to_s.should == 'from: <Astro INC> to: <+31612345678> body: "The stars tell me you will have chicken noodle soup for breakfast."'
+  end
 end
 
 describe "When sending a Mollie::SMS message" do
@@ -118,9 +128,24 @@ describe "When sending a Mollie::SMS message" do
   it "returns a Mollie::SMS::Response object, with the Net::HTTP response" do
     Net::HTTP.stubbed_response = Net::HTTPOK.new('1.1', '200', 'OK')
     Net::HTTP.stubbed_response.stubs(:read_body).returns(SUCCESS_BODY)
-    response = @sms.deliver
+    response = @sms.deliver!
     response.should.be.instance_of Mollie::SMS::Response
     response.http_response.should == Net::HTTP.stubbed_response
+  end
+
+  it "raises a Mollie::SMS::DeliveryFailure exception when sending, through the #deliver! method, fails" do
+    Net::HTTP.stubbed_response = Net::HTTPOK.new('1.1', '200', 'OK')
+    Net::HTTP.stubbed_response.stubs(:read_body).returns(FAILURE_BODY)
+
+    exception = nil
+    begin
+      @sms.deliver!
+    rescue Mollie::SMS::DeliveryFailure => exception
+    end
+
+    exception.sms.should == @sms
+    exception.response.http_response.should == Net::HTTP.stubbed_response
+    exception.message.should == "(No username given.) #{@sms.to_s}"
   end
 end
 

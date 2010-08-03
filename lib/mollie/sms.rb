@@ -23,6 +23,18 @@ module Mollie
     class ValidationError      < StandardError; end
     class MissingRequiredParam < StandardError; end
 
+    class DeliveryFailure < StandardError
+      attr_reader :sms, :response
+
+      def initialize(sms, response)
+        @sms, @response = sms, response
+      end
+
+      def message
+        "(#{@response.message}) #{@sms.to_s}"
+      end
+    end
+
     REQUIRED_PARAMS = %w{ username md5_password originator gateway charset type recipients message }
 
     class << self
@@ -72,8 +84,16 @@ module Mollie
       @params['message'] = body
     end
 
+    def ==(other)
+      other.is_a?(SMS) && other.params == params
+    end
+
+    def to_s
+      %{from: <#{params['originator']}> to: <#{telephone_number}> body: "#{body}"}
+    end
+
     def inspect
-      "#<#{self.class.name} from: <#{@params['originator']}> to: <#{telephone_number}> body: \"#{body}\" >"
+      %{#<#{self.class.name} #{to_s}>}
     end
 
     def deliver
@@ -87,6 +107,12 @@ module Mollie
         response = http.request(post)
         Response.new(response)
       end
+    end
+
+    def deliver!
+      response = deliver
+      raise DeliveryFailure.new(self, response) unless response.success?
+      response
     end
 
     def validate_params!
