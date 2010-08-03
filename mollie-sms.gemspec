@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mollie-sms}
-  s.version = "0.1.0"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Eloy Duran"]
-  s.date = %q{2010-08-02}
+  s.date = %q{2010-08-03}
   s.description = %q{Send SMS text messages via the Mollie.nl SMS gateway.}
   s.email = ["eloy@fngtps.com"]
   s.extra_rdoc_files = [
@@ -19,9 +19,15 @@ Gem::Specification.new do |s|
   s.files = [
     "LICENSE",
      "README",
+     "Rakefile",
+     "VERSION",
      "lib/mollie/sms.rb",
+     "lib/mollie/sms/test_helper.rb",
+     "mollie-sms.gemspec",
+     "spec/functional_sms_deliver_spec.rb",
      "spec/sms_spec.rb",
-     "spec/spec_helper.rb"
+     "spec/spec_helper.rb",
+     "spec/test_helper_spec.rb"
   ]
   s.homepage = %q{http://github.com/Fingertips/Mollie-SMS}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -29,8 +35,10 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Send SMS text messages via the Mollie.nl SMS gateway.}
   s.test_files = [
-    "spec/sms_spec.rb",
-     "spec/spec_helper.rb"
+    "spec/functional_sms_deliver_spec.rb",
+     "spec/sms_spec.rb",
+     "spec/spec_helper.rb",
+     "spec/test_helper_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
