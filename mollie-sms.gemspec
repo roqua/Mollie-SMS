@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
      "lib/mollie/sms.rb",
      "lib/mollie/sms/test_helper.rb",
      "mollie-sms.gemspec",
+     "rails/init.rb",
      "spec/functional_sms_deliver_spec.rb",
      "spec/sms_spec.rb",
      "spec/spec_helper.rb",

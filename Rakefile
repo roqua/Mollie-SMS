@@ -17,6 +17,7 @@ begin
     s.authors  = ["Eloy Duran"]
     s.summary  = s.description = "Send SMS text messages via the Mollie.nl SMS gateway."
     s.files   -= %w{ .gitignore TODO }
+    s.files   << "rails/init.rb"
     s.extra_rdoc_files -= %w{ TODO }
     s.add_dependency('activesupport', '>= 2.3.8')
   end
