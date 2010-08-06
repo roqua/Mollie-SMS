@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mollie-sms}
-  s.version = "0.2.1"
+  s.version = "1.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Eloy Duran"]
@@ -14,11 +14,11 @@ Gem::Specification.new do |s|
   s.email = ["eloy@fngtps.com"]
   s.extra_rdoc_files = [
     "LICENSE",
-     "README"
+     "README.rdoc"
   ]
   s.files = [
     "LICENSE",
-     "README",
+     "README.rdoc",
      "Rakefile",
      "VERSION",
      "lib/mollie/sms.rb",
