@@ -30,9 +30,6 @@ module Mollie
 </response>}
 
       # A couple of Test::Unit assertions, to test the amount of sent messages.
-      #
-      # This module is automatically mixed into the Test::Unit::TestCase class,
-      # if it’s defined at load time.
       module Assertions
         # Asserts that a specific number of SMS messages have been sent, for the
         # duration of the given block.
