@@ -19,19 +19,34 @@ module Mollie
       'landline'  => '8'
     }
 
-    class StandardError        < ::StandardError; end
-    class ValidationError      < StandardError; end
-    class MissingRequiredParam < StandardError; end
+    # A collection of exception classes raised by Mollie::SMS.
+    module Exceptions
+      # The base class for Mollie::SMS exceptions.
+      class StandardError   < ::StandardError; end
 
-    class DeliveryFailure < StandardError
-      attr_reader :sms, :response
+      # The exception class which is used to indicate a validation error of one
+      # of the {SMS#params parameters} that would be send to the gateway.
+      class ValidationError < StandardError; end
 
-      def initialize(sms, response)
-        @sms, @response = sms, response
-      end
+      # The exception class which is used to indicate a delivery failure, when
+      # the {SMS#deliver!} method is used and delivery fails.
+      class DeliveryFailure < StandardError
+        # @return [SMS] The Mollie::SMS instance.
+        attr_reader :sms
 
-      def message
-        "(#{@response.message}) #{@sms.to_s}"
+        # @return [Response] The Mollie::SMS::Response instance.
+        attr_reader :response
+
+        # @param [SMS] sms The Mollie::SMS instance.
+        # @param [Response] response The Mollie::SMS::Response instance.
+        def initialize(sms, response)
+          @sms, @response = sms, response
+        end
+
+        # @return [String] A string representation of the exception.
+        def message
+          "(#{@response.message}) #{@sms.to_s}"
+        end
       end
     end
 
