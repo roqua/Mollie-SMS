@@ -38,12 +38,23 @@ module Mollie
     REQUIRED_PARAMS = %w{ username md5_password originator gateway charset type recipients message }
 
     class << self
-      attr_accessor :username, :password, :originator, :charset, :type, :gateway
+      attr_reader :password
+      attr_accessor :username, :originator, :charset, :type, :gateway
 
+      # Assigns a MD5 hashed version of the given +password+.
+      #
+      # @param [String] password
       def password=(password)
         @password = Digest::MD5.hexdigest(password)
       end
 
+      # Returns the default parameters that will be we merged with each
+      # instance’s params.
+      #
+      # This includes +username+, +md5_password+, +originator+, +gateway+,
+      # +charset+, and +type+.
+      #
+      # @return [Hash]
       def default_params
         {
           'username'     => @username,
@@ -60,42 +71,78 @@ module Mollie
     self.type    = 'normal'
     self.gateway = GATEWAYS['basic']
 
+    # @return [Hash] the parameters that will be send to the gateway.
     attr_reader :params
 
+    # Initializes a new Mollie::SMS instance.
+    #
+    # You can either specify the recipient’s telephone number and message
+    # body here, or later on through the accessors for these attributes.
+    #
+    # @param [String] telephone_number the recipient’s telephone number.
+    #
+    # @param [String] body the message body.
+    #
+    # @param [Hash] extra_params optional parameters that are to be merged with
+    #                            the {SMS.default_params default parameters}.
     def initialize(telephone_number = nil, body = nil, extra_params = {})
       @params = self.class.default_params.merge(extra_params)
       self.telephone_number = telephone_number if telephone_number
       self.body = body if body
     end
 
+    # @return [String] the recipient’s telephone number.
     def telephone_number
       @params['recipients']
     end
 
+    # Assigns the recipient’s telephone number.
+    #
+    # @param [String] telephone_number the recipient’s telephone number.
+    # @return [String] the recipient’s telephone number.
     def telephone_number=(telephone_number)
       @params['recipients'] = telephone_number
     end
 
+    # @return [String] the message body.
     def body
       @params['message']
     end
 
+    # Assigns the message’s body.
+    #
+    # @param [String] body the message’s body.
+    # @return [String] the message’s body.
     def body=(body)
       @params['message'] = body
     end
 
+    # Compares whether or not this and the +other+ Mollie::SMS instance are
+    # equal in recipient, body, and other parameters.
+    #
+    # @param [SMS] other the Mollie::SMS instance to compare against.
+    # @return [true, false]
     def ==(other)
       other.is_a?(SMS) && other.params == params
     end
 
+    # @return [String] a string representation of this instance.
     def to_s
       %{from: <#{params['originator']}> to: <#{telephone_number}> body: "#{body}"}
     end
 
+    # @return [String] a `inspect' string representation of this instance.
     def inspect
       %{#<#{self.class.name} #{to_s}>}
     end
 
+    # Posts the {#params parameters} to the gateway, through SSL.
+    # 
+    # The params are validated before attempting to post them.
+    # @see #validate_params!
+    #
+    # @return [Response] a response object which encapsulates the result of the
+    #                    request.
     def deliver
       validate_params!
 
@@ -109,15 +156,35 @@ module Mollie
       end
     end
 
+    # Posts the {#params parameters} through {#deliver}, but raises a
+    # DeliveryFailure in case the request fails.
+    #
+    # This happens if an HTTP error occurs, or the gateway didn’t accept the
+    # {#params parameters}.
+    #
+    # @return [Response] upon success, a response object which encapsulates the
+    #                    result of the request.
+    #
+    # @raise [DeliveryFailure] an exception which encapsulates this {SMS SMS}
+    #                          instance and the {Response} object.
     def deliver!
       response = deliver
       raise DeliveryFailure.new(self, response) unless response.success?
       response
     end
 
+    # Checks if all {REQUIRED_PARAMS required parameters} are present and if
+    # the {SMS.originator} is of the right size.
+    #
+    # The {SMS.originator} should be upto either fourteen numerical characters,
+    # or eleven alphanumerical characters.
+    #
+    # @raise [ValidationError] if any of the validations fail.
+    #
+    # @return [nil]
     def validate_params!
       params.slice(*REQUIRED_PARAMS).each do |key, value|
-        raise MissingRequiredParam, "The required parameter `#{key}' is missing." if value.blank?
+        raise ValidationError, "The required parameter `#{key}' is missing." if value.blank?
       end
 
       originator = params['originator']
