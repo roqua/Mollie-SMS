@@ -10,15 +10,6 @@ require "active_support"
 
 module Mollie
   class SMS
-    GATEWAY_URI = URI.parse("https://secure.mollie.nl/xml/sms")
-
-    GATEWAYS = {
-      'basic'     => '2',
-      'business'  => '4',
-      'business+' => '1',
-      'landline'  => '8'
-    }
-
     # A collection of exception classes raised by Mollie::SMS.
     module Exceptions
       # The base class for Mollie::SMS exceptions.
@@ -50,18 +41,75 @@ module Mollie
       end
     end
 
+    # The SSL URI to which the parameters of a SMS are posted.
+    GATEWAY_URI = URI.parse("https://secure.mollie.nl/xml/sms")
+
+    # The possible values that indicate which {SMS.gateway= SMS gateway} should
+    # be used.
+    #
+    # @see http://www.mollie.nl/sms-diensten/sms-gateway/gateways
+    GATEWAYS = {
+      'basic'     => '2',
+      'business'  => '4',
+      'business+' => '1',
+      'landline'  => '8'
+    }
+
+    # A list of paramaters that *must* to be included in the
+    # {SMS#params parameters} send to the gateway.
     REQUIRED_PARAMS = %w{ username md5_password originator gateway charset type recipients message }
 
     class << self
-      attr_reader :password
-      attr_accessor :username, :originator, :charset, :type, :gateway
+      # @return [String] Your username for the Mollie.nl SMS webservice.
+      attr_accessor :username
 
-      # Assigns a MD5 hashed version of the given +password+.
-      #
-      # @param [String] password
+      # @return [String] A MD5 hashed version of your password for the
+      #                  Mollie.nl SMS webservice.
+      attr_reader :password
       def password=(password)
         @password = Digest::MD5.hexdigest(password)
       end
+
+      # The number, or display name, that will be used to indicate the
+      # originator of a message.
+      #
+      # It should be upto either fourteen numerical characters, or eleven
+      # alphanumerical characters.
+      #
+      # @see SMS#validate_params!
+      #
+      # @return [String] The originator
+      attr_accessor :originator
+
+      # @return [String] A character set name, describing the message’s body
+      #                  encoding. Defaults to ‘UTF-8’.
+      attr_accessor :charset
+
+      # The type of messages that will be send. Possible values are:
+      # * normal
+      # * wappush
+      # * vcard
+      # * flash
+      # * binary
+      # * long
+      #
+      # Defaults to ‘normal’
+      #
+      # @return [String] The message type.
+      attr_accessor :type
+
+      # The gateway that should be used to send messages. Possible values are:
+      # * {GATEWAYS GATEWAYS['basic']}
+      # * {GATEWAYS GATEWAYS['business']}
+      # * {GATEWAYS GATEWAYS['business+']}
+      # * {GATEWAYS GATEWAYS['landline']}
+      #
+      # Defaults to ‘basic’.
+      #
+      # @see http://www.mollie.nl/sms-diensten/sms-gateway/gateways
+      #
+      # @return [String] The gateway ID.
+      attr_accessor :gateway
 
       # Returns the default parameters that will be we merged with each
       # instance’s params.
@@ -191,8 +239,7 @@ module Mollie
     # Checks if all {REQUIRED_PARAMS required parameters} are present and if
     # the {SMS.originator} is of the right size.
     #
-    # The {SMS.originator} should be upto either fourteen numerical characters,
-    # or eleven alphanumerical characters.
+    # @see SMS.originator
     #
     # @raise [ValidationError] If any of the validations fail.
     #
