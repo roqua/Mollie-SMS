@@ -32,7 +32,49 @@ module Mollie
   #
   # = Examples
   #
-  # @todo Add examples!
+  # == Normal usage
+  #
+  #   require 'mollie/sms'
+  #   
+  #   sms = Mollie::SMS.new('+31681664814', 'You have won a bowl of chicken noodle soup!')
+  #   # => #<Mollie::SMS from: <fngtps.nl> to: <+31681664814> body: "You have won a bowl of chicken noodle soup!">
+  #   
+  #   response = sms.deliver # => #<Mollie::SMS::Response succeeded (10) `Message successfully sent.'>
+  #   
+  #   response.success? # => true
+  #   response.result_code # => 10
+  #   response.message # => "Message successfully sent."
+  #
+  # == Test usage
+  #
+  #   require 'mollie/sms/test_helper'
+  #   
+  #   Mollie::SMS.http_failure!
+  #   
+  #   response = sms.deliver # => #<Mollie::SMS::Response failed (400) `[HTTP: 400] Bad request'>
+  #   response.success? # => false
+  #   response.result_code # => 400
+  #   response.message # => "[HTTP: 400] Bad request"
+  #   
+  #   Mollie::SMS.gateway_failure! # => #<Mollie::SMS::Response failed (20) `No username given.'>
+  #   
+  #   response = sms.deliver # => #<Mollie::SMS::Response failed (20) `No username given.'>
+  #   response.success? # => false
+  #   response.result_code # => 20
+  #   response.message # => "No username given."
+  #   
+  #   Mollie::SMS.deliveries
+  #   # => [#<Mollie::SMS from: <fngtps.nl> to: <+31681664814> body: "You have won a bowl of chicken noodle soup!">,
+  #   #     #<Mollie::SMS from: <fngtps.nl> to: <+31681664814> body: "You have won a bowl of chicken noodle soup!">]
+  #
+  # = Rails
+  #
+  # If you are using Rails and load the Mollie::SMS gem, it will automatically
+  # require the test helper in test mode.
+  #
+  # It also requires the test helper in development mode, so no actual SMS
+  # messages can be send. Instead, the messages are logged to the
+  # development.log.
   #
   class SMS
     # A collection of exception classes raised by Mollie::SMS.
@@ -67,6 +109,8 @@ module Mollie
     end
 
     # The SSL URI to which the parameters of a SMS are posted.
+    #
+    # Note that the certificate is *not* verified.
     GATEWAY_URI = URI.parse("https://secure.mollie.nl/xml/sms")
 
     # The possible values that indicate which {SMS.gateway= SMS gateway} should
@@ -238,6 +282,7 @@ module Mollie
       post.form_data = params
       request = Net::HTTP.new(GATEWAY_URI.host, GATEWAY_URI.port)
       request.use_ssl = true
+      request.verify_mode = OpenSSL::SSL::VERIFY_NONE
       request.start do |http|
         response = http.request(post)
         Response.new(response)

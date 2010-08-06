@@ -13,7 +13,7 @@ end
 task :default => :spec
 
 begin
-  require 'yard/rake/yardoc_task'
+  require 'yard'
   YARD::Rake::YardocTask.new do |t|
     t.options = %w{ --no-private }
   end
