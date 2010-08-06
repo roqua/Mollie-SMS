@@ -12,12 +12,9 @@ end
 
 task :default => :spec
 
-begin
-  require 'yard'
-  YARD::Rake::YardocTask.new do |t|
-    t.options = %w{ --no-private }
-  end
-rescue LoadError
+desc "Generate the docs with YARD"
+task :doc do ||
+  sh "yardoc - README.rdoc LICENSE"
 end
 
 begin

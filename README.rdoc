@@ -1,0 +1,103 @@
+A Ruby client that allows you to send SMS messages via
+{http://www.mollie.nl/sms-diensten/sms-gateway Mollie.nl}.
+
+See {Mollie::SMS} for the API documentation.
+
+See the Mollie.nl API
+{http://www.mollie.nl/support/documentatie/sms-diensten/sms/http/en documentation}
+for more info.
+
+*Note* that it currently only does what we need, for our app, at this point in
+time. Which means that it connects to the webservice via SSL, and only sends a
+message to *one* recipient at a time. Finally, it assumes ActiveSupport is
+available for XML parsing. (A patch that adds a fallback, to REXML, is much
+appreciated.)
+
+= Install
+
+  $ gem install mollie-sms
+
+Or if you have a checkout of the source and have installed Jeweler:
+
+  $ rake install
+
+= Configuration
+
+The minimum required settings are:
+* {Mollie::SMS.username username}
+* {Mollie::SMS.password password}
+* {Mollie::SMS.originator originator}
+
+For example, a Rails initializer might look like:
+
+  module Mollie
+    SMS.username   = 'Fingertips'
+    SMS.password   = 'secret'
+    SMS.originator = 'fngtps.nl'
+  end
+
+= Examples
+
+== Normal usage
+
+  require 'mollie/sms'
+  
+  sms = Mollie::SMS.new('+31681664814', 'You have won a bowl of chicken noodle soup!')
+  => #<Mollie::SMS from: <fngtps.nl> to: <+31681664814> body: "You have won a bowl of chicken noodle soup!">
+  
+  response = sms.deliver # => #<Mollie::SMS::Response succeeded (10) `Message successfully sent.'>
+  
+  response.success? # => true
+  response.result_code # => 10
+  response.message # => "Message successfully sent."
+
+== Test usage
+
+  require 'mollie/sms'
+  require 'mollie/sms/test_helper'
+  
+  Mollie::SMS.http_failure!
+  
+  response = sms.deliver # => #<Mollie::SMS::Response failed (400) `[HTTP: 400] Bad request'>
+  response.success? # => false
+  response.result_code # => 400
+  response.message # => "[HTTP: 400] Bad request"
+  
+  Mollie::SMS.gateway_failure! # => #<Mollie::SMS::Response failed (20) `No username given.'>
+  
+  response = sms.deliver # => #<Mollie::SMS::Response failed (20) `No username given.'>
+  response.success? # => false
+  response.result_code # => 20
+  response.message # => "No username given."
+  
+  Mollie::SMS.deliveries
+  => [#<Mollie::SMS from: <fngtps.nl> to: <+31681664814> body: "You have won a bowl of chicken noodle soup!">,
+      #<Mollie::SMS from: <fngtps.nl> to: <+31681664814> body: "You have won a bowl of chicken noodle soup!">]
+
+= Rails
+
+If you are using Rails and load the Mollie::SMS gem, it will automatically
+require the test helper in test mode.
+
+It also requires the test helper in development mode, so no actual SMS
+messages can be send. Instead, the messages are logged to the
+development.log.
+
+= Contributing
+
+Once you've made your great commits:
+
+1. {http://help.github.com/forking Fork} Mollie-SMS
+2. Create a topic branch
+     git checkout -b my_branch
+3. Push to your branch
+     git push origin my_branch
+4. Create an {http://github.com/Fingertips/Mollie-SMS/issues issue} with a link
+   to your branch
+5. That's it!
+
+= Copyright
+
+Copyright (c) 2010 Eloy Duran, Fingertips <eloy@fngtps.com>
+
+This software is MIT licensed. See {file:LICENSE} for more info.
