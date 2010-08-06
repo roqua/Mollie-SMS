@@ -203,7 +203,4 @@ module Mollie
   end
 end
 
-if defined?(Test::Unit::TestCase)
-  Test::Unit::TestCase.send(:include, Mollie::SMS::TestHelper::Assertions)
-end
 Mollie::SMS.send(:include, Mollie::SMS::TestHelper::SMSExt)

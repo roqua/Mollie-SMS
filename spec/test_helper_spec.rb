@@ -1,11 +1,4 @@
 require File.expand_path("../spec_helper", __FILE__)
-
-module Test
-  class Unit
-    class TestCase
-    end
-  end
-end
 require "mollie/sms/test_helper"
 
 describe "Mollie::SMS ext" do
@@ -53,12 +46,6 @@ end
 
 describe "Mollie::SMS::TestHelper::Assertions" do
   extend Mollie::SMS::TestHelper::Assertions
-
-  it "automatically includes the Assertions module into Test::Unit::TestCase" do
-    methods = Test::Unit::TestCase.instance_methods
-    methods.should.include "assert_sms_messages"
-    methods.should.include "assert_no_sms_messages"
-  end
 
   before do
     Mollie::SMS.reset!
