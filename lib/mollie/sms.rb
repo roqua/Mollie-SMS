@@ -8,7 +8,32 @@ rescue LoadError
 end
 require "active_support"
 
+# The namespace for the Mollie.nl webservices.
+#
+# @see Mollie::SMS
 module Mollie
+  # A class that allows you to send SMS messages through the Mollie.nl SMS
+  # webservice.
+  #
+  # = Configuration
+  #
+  # The minimum required settings are:
+  # * {Mollie::SMS.username username}
+  # * {Mollie::SMS.password password}
+  # * {Mollie::SMS.originator originator}
+  #
+  # For example, a Rails initializer might look like:
+  #
+  #   module Mollie
+  #     SMS.username   = 'Fingertips'
+  #     SMS.password   = 'secret'
+  #     SMS.originator = 'fngtps.nl'
+  #   end
+  #
+  # = Examples
+  #
+  # @todo Add examples!
+  #
   class SMS
     # A collection of exception classes raised by Mollie::SMS.
     module Exceptions
@@ -259,6 +284,9 @@ module Mollie
       end
     end
 
+    # This class encapsulates the HTTP response and the response from the
+    # gateway. Put shortly, instances of this class return whether or not a SMS
+    # message has been delivered.
     class Response
       # @return [Net::HTTPResponse] The raw HTTP response object.
       attr_reader :http_response
