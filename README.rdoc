@@ -1,7 +1,8 @@
 A Ruby client that allows you to send SMS messages via
 {http://www.mollie.nl/sms-diensten/sms-gateway Mollie.nl}.
 
-See {Mollie::SMS} for the API documentation.
+See {Mollie::SMS} for the API documentation. Or, if you are reading this as
+plain text, on {http://rdoc.info/projects/Fingertips/Mollie-SMS rdoc.info}.
 
 See the Mollie.nl API
 {http://www.mollie.nl/support/documentatie/sms-diensten/sms/http/en documentation}
