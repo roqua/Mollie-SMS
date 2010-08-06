@@ -71,7 +71,7 @@ module Mollie
     self.type    = 'normal'
     self.gateway = GATEWAYS['basic']
 
-    # @return [Hash] the parameters that will be send to the gateway.
+    # @return [Hash] The parameters that will be send to the gateway.
     attr_reader :params
 
     # Initializes a new Mollie::SMS instance.
@@ -79,11 +79,11 @@ module Mollie
     # You can either specify the recipient’s telephone number and message
     # body here, or later on through the accessors for these attributes.
     #
-    # @param [String] telephone_number the recipient’s telephone number.
+    # @param [String] telephone_number The recipient’s telephone number.
     #
-    # @param [String] body the message body.
+    # @param [String] body The message body.
     #
-    # @param [Hash] extra_params optional parameters that are to be merged with
+    # @param [Hash] extra_params Optional parameters that are to be merged with
     #                            the {SMS.default_params default parameters}.
     def initialize(telephone_number = nil, body = nil, extra_params = {})
       @params = self.class.default_params.merge(extra_params)
@@ -91,28 +91,28 @@ module Mollie
       self.body = body if body
     end
 
-    # @return [String] the recipient’s telephone number.
+    # @return [String] The recipient’s telephone number.
     def telephone_number
       @params['recipients']
     end
 
     # Assigns the recipient’s telephone number.
     #
-    # @param [String] telephone_number the recipient’s telephone number.
-    # @return [String] the recipient’s telephone number.
+    # @param [String] telephone_number The recipient’s telephone number.
+    # @return [String] The recipient’s telephone number.
     def telephone_number=(telephone_number)
       @params['recipients'] = telephone_number
     end
 
-    # @return [String] the message body.
+    # @return [String] The message body.
     def body
       @params['message']
     end
 
     # Assigns the message’s body.
     #
-    # @param [String] body the message’s body.
-    # @return [String] the message’s body.
+    # @param [String] body The message’s body.
+    # @return [String] The message’s body.
     def body=(body)
       @params['message'] = body
     end
@@ -120,18 +120,18 @@ module Mollie
     # Compares whether or not this and the +other+ Mollie::SMS instance are
     # equal in recipient, body, and other parameters.
     #
-    # @param [SMS] other the Mollie::SMS instance to compare against.
-    # @return [true, false]
+    # @param [SMS] other The Mollie::SMS instance to compare against.
+    # @return [Boolean]
     def ==(other)
       other.is_a?(SMS) && other.params == params
     end
 
-    # @return [String] a string representation of this instance.
+    # @return [String] A string representation of this instance.
     def to_s
       %{from: <#{params['originator']}> to: <#{telephone_number}> body: "#{body}"}
     end
 
-    # @return [String] a `inspect' string representation of this instance.
+    # @return [String] A `inspect' string representation of this instance.
     def inspect
       %{#<#{self.class.name} #{to_s}>}
     end
@@ -141,7 +141,7 @@ module Mollie
     # The params are validated before attempting to post them.
     # @see #validate_params!
     #
-    # @return [Response] a response object which encapsulates the result of the
+    # @return [Response] A response object which encapsulates the result of the
     #                    request.
     def deliver
       validate_params!
@@ -162,10 +162,10 @@ module Mollie
     # This happens if an HTTP error occurs, or the gateway didn’t accept the
     # {#params parameters}.
     #
-    # @return [Response] upon success, a response object which encapsulates the
+    # @return [Response] Upon success, a response object which encapsulates the
     #                    result of the request.
     #
-    # @raise [DeliveryFailure] an exception which encapsulates this {SMS SMS}
+    # @raise [DeliveryFailure] An exception which encapsulates this {SMS SMS}
     #                          instance and the {Response} object.
     def deliver!
       response = deliver
@@ -179,7 +179,7 @@ module Mollie
     # The {SMS.originator} should be upto either fourteen numerical characters,
     # or eleven alphanumerical characters.
     #
-    # @raise [ValidationError] if any of the validations fail.
+    # @raise [ValidationError] If any of the validations fail.
     #
     # @return [nil]
     def validate_params!
@@ -198,32 +198,69 @@ module Mollie
     end
 
     class Response
+      # @return [Net::HTTPResponse] The raw HTTP response object.
       attr_reader :http_response
 
+      # Initializes a new Mollie::SMS::Response instance.
+      #
+      # @param [Net::HTTPResponse] http_response The HTTP response object.
       def initialize(http_response)
         @http_response = http_response
       end
 
+      # @return [Hash] The response parameters from the gateway. Or an empty
+      #                Hash if a HTTP error occurred.
       def params
         @params ||= http_failure? ? {} : Hash.from_xml(@http_response.read_body)['response']['item']
       end
 
+      # Upon success, returns the result code from the gateway. Otherwise the
+      # HTTP response code.
+      #
+      # The possible gateway result codes are:
+      # * 10 - message sent
+      # * 20 - no ‘username’
+      # * 21 - no ‘password’
+      # * 22 - no, or incorrect, ‘originator’
+      # * 23 - no ‘recipients’
+      # * 24 - no ‘message’
+      # * 25 - incorrect ‘recipients’
+      # * 26 - incorrect ‘originator’
+      # * 27 - incorrect ‘message’
+      # * 28 - charset failure
+      # * 29 - parameter failure
+      # * 30 - incorrect ‘username’ or ‘password’
+      # * 31 - not enough credits to send message
+      # * 38 - binary UDH parameter misformed
+      # * 39 - ‘deliverydate’ format is not correct
+      # * 98 - gateway unreachable
+      # * 99 - unknown error
+      #
+      # @return [Integer] The result code from the gateway or HTTP response
+      #                   code.
       def result_code
         (http_failure? ? @http_response.code : params['resultcode']).to_i
       end
 
+      # @return [String] The message from the gateway, or the HTTP message in
+      #                  case of a HTTP error.
+      #
+      # @see #result_code #result_code for a list of possible messages.
       def message
         http_failure? ? "[HTTP: #{@http_response.code}] #{@http_response.message}" : params['resultmessage']
       end
 
+      # @return [Boolean] Whether or not the SMS message has been delivered.
       def success?
         !http_failure? && params['success'] == 'true'
       end
 
+      # @return [Boolean] Whether or not the HTTP request was a success.
       def http_failure?
         !@http_response.is_a?(Net::HTTPSuccess)
       end
 
+      # @return [String] A `inspect' string representation of this instance.
       def inspect
         "#<#{self.class.name} #{ success? ? 'succeeded' : 'failed' } (#{result_code}) `#{message}'>"
       end
