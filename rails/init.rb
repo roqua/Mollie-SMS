@@ -2,7 +2,7 @@ case Rails.env
 when "test"
   require 'mollie/sms/test_helper'
   require 'active_support/test_case'
-  ActiveSupport::TestCase.send(:include, Mollie::SMS::TestHelper)
+  ActiveSupport::TestCase.send(:include, Mollie::SMS::TestHelper::Assertions)
 when "development"
   require 'mollie/sms/test_helper'
   class Mollie::SMS
