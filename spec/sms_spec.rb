@@ -110,7 +110,7 @@ describe "When sending a Mollie::SMS message" do
     exception = nil
     begin
       @sms.deliver!
-    rescue Mollie::SMS::DeliveryFailure => exception
+    rescue Mollie::SMS::Exceptions::DeliveryFailure => exception
     end
 
     exception.message.should == "(No username given.) #{@sms.to_s}"
@@ -210,7 +210,7 @@ describe "Mollie::SMS, concerning validation" do
     @sms.params['originator'] = "000000000011112"
     lambda do
       @sms.deliver
-    end.should.raise(Mollie::SMS::ValidationError, "Originator may have a maximimun of 14 numerical characters.")
+    end.should.raise(Mollie::SMS::Exceptions::ValidationError, "Originator may have a maximimun of 14 numerical characters.")
   end
 
   it "accepts an originator of upto 11 alphanumerical characters" do
@@ -222,6 +222,6 @@ describe "Mollie::SMS, concerning validation" do
     @sms.params['originator'] = "0123456789AB"
     lambda do
       @sms.deliver
-    end.should.raise(Mollie::SMS::ValidationError, "Originator may have a maximimun of 11 alphanumerical characters.")
+    end.should.raise(Mollie::SMS::Exceptions::ValidationError, "Originator may have a maximimun of 11 alphanumerical characters.")
   end
 end

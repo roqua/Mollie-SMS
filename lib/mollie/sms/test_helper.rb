@@ -85,8 +85,11 @@ module Mollie
       module SMSExt
         # @private
         def self.included(klass)
-          klass.undef_method :deliver
-          klass.extend ClassMethods
+          klass.class_eval do
+            undef_method :deliver
+            alias_method :deliver, :test_deliver
+            extend ClassMethods
+          end
         end
 
         # Overrides the normal {Mollie::SMS#deliver deliver} method to *never*
@@ -107,6 +110,8 @@ module Mollie
           self.class.deliveries << self
           self.class.stubbed_response
         end
+
+        alias_method :test_deliver, :deliver
 
         module ClassMethods
           # @return [Array<Mollie::SMS>] A list of sent SMS messages.

@@ -257,7 +257,7 @@ module Mollie
     #                          instance and the {Response} object.
     def deliver!
       response = deliver
-      raise DeliveryFailure.new(self, response) unless response.success?
+      raise Exceptions::DeliveryFailure.new(self, response) unless response.success?
       response
     end
 
@@ -271,16 +271,16 @@ module Mollie
     # @return [nil]
     def validate_params!
       params.slice(*REQUIRED_PARAMS).each do |key, value|
-        raise ValidationError, "The required parameter `#{key}' is missing." if value.blank?
+        raise Exceptions::ValidationError, "The required parameter `#{key}' is missing." if value.blank?
       end
 
       originator = params['originator']
       if originator =~ /^\d+$/
         if originator.size > 14
-          raise ValidationError, "Originator may have a maximimun of 14 numerical characters."
+          raise Exceptions::ValidationError, "Originator may have a maximimun of 14 numerical characters."
         end
       elsif originator.size > 11
-        raise ValidationError, "Originator may have a maximimun of 11 alphanumerical characters."
+        raise Exceptions::ValidationError, "Originator may have a maximimun of 11 alphanumerical characters."
       end
     end
 

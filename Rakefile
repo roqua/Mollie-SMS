@@ -5,7 +5,20 @@ task :spec do
   sh "ruby ./spec/functional_sms_deliver_spec.rb"
 end
 
+desc "Run the specs with Kicker"
+task :kick do
+  sh "kicker -c -e rake"
+end
+
 task :default => :spec
+
+begin
+  require 'yard/rake/yardoc_task'
+  YARD::Rake::YardocTask.new do |t|
+    t.options = %w{ --no-private }
+  end
+rescue LoadError
+end
 
 begin
   require 'rubygems'
