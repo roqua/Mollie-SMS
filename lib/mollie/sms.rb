@@ -6,7 +6,7 @@ begin
   require "rubygems"
 rescue LoadError
 end
-require "active_support"
+require "active_support/core_ext"
 
 # The namespace for the Mollie.nl webservices.
 #
@@ -210,7 +210,7 @@ module Mollie
     end
 
     # Posts the {#params parameters} to the gateway, through SSL.
-    # 
+    #
     # The params are validated before attempting to post them.
     # @see #validate_params!
     #

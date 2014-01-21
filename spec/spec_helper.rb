@@ -1,6 +1,6 @@
 require "rubygems"
 require "bacon"
-require "mocha"
+require "mocha/api"
 
 Bacon.summary_on_exit
 
