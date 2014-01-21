@@ -99,6 +99,6 @@ Once you've made your great commits:
 
 = Copyright
 
-Copyright (c) 2010 Eloy Duran, Fingertips <eloy@fngtps.com>
+Copyright (c) 2010-2014 Eloy Duran, Fingertips <eloy@fngtps.com>
 
 This software is MIT licensed. See {file:LICENSE} for more info.
