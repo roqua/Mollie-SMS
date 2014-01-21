@@ -6,7 +6,7 @@ begin
   require "rubygems"
 rescue LoadError
 end
-require "active_support"
+require "active_support/core_ext"
 
 # The namespace for the Mollie.nl webservices.
 #
@@ -52,7 +52,7 @@ module Mollie
     # The SSL URI to which the parameters of a SMS are posted.
     #
     # Note that the certificate is *not* verified.
-    GATEWAY_URI = URI.parse("https://secure.mollie.nl/xml/sms")
+    GATEWAY_URI = URI.parse("https://api.messagebird.nl/xml/sms")
 
     # The possible values that indicate which {SMS.gateway= SMS gateway} should
     # be used.
@@ -210,7 +210,7 @@ module Mollie
     end
 
     # Posts the {#params parameters} to the gateway, through SSL.
-    # 
+    #
     # The params are validated before attempting to post them.
     # @see #validate_params!
     #

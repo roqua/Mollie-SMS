@@ -3,7 +3,7 @@ require "mollie/sms/test_helper"
 
 describe "Mollie::SMS" do
   it "holds the gateway uri" do
-    Mollie::SMS::GATEWAY_URI.should == URI.parse("https://secure.mollie.nl/xml/sms")
+    Mollie::SMS::GATEWAY_URI.should == URI.parse("https://api.messagebird.nl/xml/sms")
   end
 
   it "holds the service username" do

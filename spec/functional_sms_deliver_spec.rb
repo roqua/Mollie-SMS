@@ -58,7 +58,7 @@ describe "When sending a Mollie::SMS message" do
     request.host.should == Mollie::SMS::GATEWAY_URI.host
     request.port.should == Mollie::SMS::GATEWAY_URI.port
     post.path.should == Mollie::SMS::GATEWAY_URI.path
-    post.body.should == "a%20key=a%20value"
+    post.body.should == "a+key=a+value"
   end
 
   it "returns a Mollie::SMS::Response object, with the Net::HTTP response" do
