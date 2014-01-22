@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mollie-sms (1.0.0)
+    mollie-sms (1.1.1)
       activesupport (>= 2.3.8)
 
 GEM
