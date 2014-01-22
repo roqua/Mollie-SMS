@@ -52,7 +52,7 @@ module Mollie
     # The SSL URI to which the parameters of a SMS are posted.
     #
     # Note that the certificate is *not* verified.
-    GATEWAY_URI = URI.parse("https://api.messagebird.nl/xml/sms")
+    GATEWAY_URI = URI.parse("https://api.messagebird.com/xml/sms")
 
     # The possible values that indicate which {SMS.gateway= SMS gateway} should
     # be used.
